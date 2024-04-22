@@ -60,7 +60,7 @@ def main(argv):
     zvertexdist = ROOT.TH1F("zvertexdist", "z Vertex distribution", 80, -40, 40)
     reacpldist = ROOT.TH1F("reacplandist", "Reaction plane distribution", 100, -2.0, 2.0)
     v2val = ROOT.TH1F("v2val", "True v2 values", 1000, 0.0, 0.1)
-    PxNP = ROOT.TGraph("RxNP.csv","%lg %lg"," \\t,;")
+    RxNP = ROOT.TGraph("RxNP.csv","%lg %lg"," \\t,;")
 
     for icent in range(NCENT):
         v2values[icent] = ROOT.TGraph(NPT)
@@ -81,7 +81,18 @@ def main(argv):
     if 0 < Nmaxevt < Nevents:
         Nevents = Nmaxevt
     print("Will run on {} events (out of {}).".format(Nevents, tree.GetEntries()))
-
+    correction = []
+    corrCentBin = 0
+    y = []
+    for i in range(RxNP.GetN()+1):
+        x = RxNP.GetPointX(i)
+        if(corrCentBin == whichCent(x)):
+            y.append(RxNP.GetPointY(i))
+        else:
+            correction.append(np.average(y))
+            y = []
+        corrCentBin = whichCent(x)
+    print(correction)
     # Loop through events in the given dataset
     for ievent in range(Nevents):
       tree.GetEntry(ievent)
@@ -96,17 +107,7 @@ def main(argv):
       cent = tree.Centrality
       centdist.Fill(cent)
       centBin = whichCent(cent)
-      correction = []
-      corrCentBin = 0
-      y = []
-      for i in range(PxNP.GetN()):
-          x = PxNP.GetPointX(i)
-          if(corrCentBin == whichCent(x)):
-              y.append(PxNP.GetPointY(i))
-          else:
-              correction.append(np.average(y))
-              y = []
-          corrCentBin = whichCent(x)
+ 
 
 
       reactionPlane = tree.ReactionPlane
@@ -152,7 +153,7 @@ def main(argv):
             print("cent:", icent, "\tpt =", ipT)
             #fit phi to get parameters for v2
             #phidist[ipT][icent].Fit(fitFunc,"n")
-            fitPtr = ROOT.TFitResultPtr(phidist[ipT][icent].Fit(fitFunc, "SV"))
+            fitPtr = ROOT.TFitResultPtr(phidist[ipT][icent].Fit(fitFunc, "S"))
             #get parameters, constant and coefficient
             a = fitPtr.Parameter(0)
             b = fitPtr.Parameter(1)
@@ -161,8 +162,6 @@ def main(argv):
             berr = fitPtr.ParError(1)
             #get covariance between parameters
             abcov = fitPtr.CovMatrix(1, 0)
-            #error propagation
-            v2error_raw = abs(b/2.0*a) * np.sqrt((aerr**2) / (a**2) + (berr**2) / (b**2) - 2 * abcov / (a*b))
 
             v2_raw = b/(2.0*a)
             print("Raw v2 is:", v2_raw)
@@ -170,6 +169,9 @@ def main(argv):
             evPlaneRes = np.sqrt(abs(calcEventPlaneResDist[ipT][icent].GetMean()))
             evPlaneRes = correction[icent]
             print("event plane resolution:", evPlaneRes)
+
+            #error propagation
+            v2error_raw = abs(b/(2.0*a)) * np.sqrt((aerr**2) / (a**2) + (berr**2) / (b**2) - 2 * abcov / (a*b))
 
             v2_true = v2_raw/evPlaneRes
             v2error_true = v2error_raw / evPlaneRes

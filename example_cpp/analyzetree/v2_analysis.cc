@@ -12,6 +12,8 @@
 #include <TGraphErrors.h>
 #include <TFitResult.h>
 #include <TFitResultPtr.h>
+#include <numeric>
+
 
 #define NCENT 6
 #define NPT 18
@@ -68,6 +70,7 @@ int main(int argc, const char** argv)
     TH1 *zvertexdist = new TH1F("zvertexdist", "z Vertex distribution", 80, -40, 40);
     TH1 *reacpldist = new TH1F("reacplandist", "Reaction plane distribution", 100, -2.0, 2.0);
     TH1 *v2val = new TH1F("v2val", "True v2 values", 1000, 0.0, 0.1);
+    TGraph *RxNP = new TGraph("RxNP.csv","%lg %lg"," \\t,;");
 
     for(int icent = 0; icent < NCENT; icent++)
     {
@@ -80,6 +83,28 @@ int main(int argc, const char** argv)
             phidist[ipT][icent] = new TH1D(Form("phidist_cent%i_pT%i",icent, ipT), "PhiDistribution;phi;Entries", 200, -M_PI/2.0,M_PI/2.0);
             phirawphidist[ipT][icent] = new TH1D(Form("phiCalcRP_RPDist_cent%i_pT%i",icent, ipT), "cos(2*(Measured #varphi - RP)) Distribution; cos(2*(Measured #varphi - RP)); Entries", 200, -M_PI/2.0,M_PI/2.0);
         }
+    }
+    std::vector<double> correction;
+    int corrCentBin = 0;
+    std::vector<double> y;
+
+    for(int i = 0; i < RxNP->GetN(); i++)
+    {
+      int x = RxNP->GetPointX(i);
+      if(corrCentBin == whichCent(x))
+      {
+        y.push_back(RxNP->GetPointY(i));
+      }
+      else
+      {
+        double sum = std::accumulate(y.begin(), y.end(), 0.0); 
+
+        // average of the vector elements 
+        double avg = sum / y.size(); 
+        correction.push_back(avg);
+        y.clear();
+      }
+      corrCentBin = whichCent(x);
     }
     
 
@@ -102,6 +127,8 @@ int main(int argc, const char** argv)
         int cent = p.Centrality;
         centdist->Fill(cent);
         int centBin = whichCent(cent);
+
+
 
         double reactionPlane = p.ReactionPlane;
         reacpldist->Fill(reactionPlane);
@@ -167,6 +194,7 @@ int main(int argc, const char** argv)
             cout << "Raw v2 is: " << v2_raw << endl;
             //sigm
             double evPlaneRes = sqrt(abs(phirawphidist[ipT][icent]->GetMean()));
+            evPlaneRes = correction[icent];
             cout << "event plane resolution: "<< evPlaneRes << endl;
 
             double v2_true = v2_raw/evPlaneRes;

@@ -12,8 +12,8 @@ CXX     = g++
 LD      = g++
 ROOTCFLAGS   := $(shell root-config --cflags)
 ROOTLIBS     := $(shell root-config --libs) -lMinuit
-CFLAGS  = -O -Wall -fPIC -fno-inline $(ROOTCFLAGS) -I$(WrkDir)/$(RdrDir)
-LDFLAGS = -O -m32 # beware -m32 may have to be deleted/added
+CFLAGS  = -O0 -g -Wall -fPIC -fno-inline $(ROOTCFLAGS) -I$(WrkDir)/$(RdrDir)
+LDFLAGS = -O0 # beware -m32 may have to be deleted/added
 
 COMMON_SOURCES = particle_tree.C
 COMMON_OBJECTS = $(addprefix $(ObjDir)/, $(addsuffix .o,$(notdir $(basename $(COMMON_SOURCES)))))
