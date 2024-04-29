@@ -7,8 +7,8 @@ import numpy as np
 import time
 
 
-ROOT.gInterpreter.ProcessLine('#include "example_py_so/particle_tree.h"')
-ROOT.gSystem.Load('./example_py_so/lib/libcommon.dylib')
+ROOT.gInterpreter.ProcessLine('#include "particle_tree.h"')
+ROOT.gSystem.Load('./lib/libcommon.dylib')
 
 
 

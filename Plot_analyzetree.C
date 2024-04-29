@@ -2,7 +2,7 @@ using namespace std;
 #define NCENT 6
 #define NPT 18
 
-void Plot_analyzetree(const char* filename="/Users/barnabasp/Documents/Code/Nehezion_spec/analyzetree/test_5M.root", const char* figdir="figs")
+void Plot_analyzetree(const char* filename="/Users/barnabasp/Documents/Code/PyRoot_HeavyIon/test_big_big.root", const char* figdir="figs")
 {
     TFile *f = new TFile(filename);
 
@@ -88,7 +88,7 @@ void Plot_analyzetree(const char* filename="/Users/barnabasp/Documents/Code/Nehe
             v2err->GetXaxis()->SetTitle("pT (GeV/c)");
             v2err->GetXaxis()->SetRangeUser(0.2,4.7);
             v2err->GetYaxis()->SetTitle("v_{2}");
-            //v2err->GetYaxis()->SetRangeUser(0.0,0.25);
+            v2err->GetYaxis()->SetRangeUser(0.0,0.25);
             v2err->SetTitle("v_{2}(p_{T}) values for different centrality bins ");
             v2err->Draw("AP");
         }
